@@ -510,21 +510,43 @@
     }
 
     // Load years on page load
+    // The bare /SafetyRatings/modelyear endpoint returns empty results,
+    // so we generate years from a known range and probe the first one to
+    // find the current max year that NHTSA has data for.
     (async function loadYears() {
       setLoading('Loading years...');
       try {
-        const res  = await fetch(`${NHTSA}/SafetyRatings/modelyear`);
-        const data = await res.json();
-        const years = (data.Results || []).map(r => r.ModelYear).sort((a, b) => b - a);
+        const currentYear = new Date().getFullYear();
+        // Try up to 2 years ahead (NHTSA sometimes has next model year data)
+        let maxYear = currentYear;
+        for (let y = currentYear + 2; y >= currentYear; y--) {
+          try {
+            const probe = await fetch(`${NHTSA}/SafetyRatings/modelyear/${y}`);
+            const pd = await probe.json();
+            if (pd.Results && pd.Results.length > 0) {
+              maxYear = y;
+              break;
+            }
+          } catch (_) { /* skip */ }
+        }
+        const MIN_YEAR = 1990;
         yearSelect.innerHTML = '<option value="">Select year</option>';
-        years.forEach(y => {
+        for (let y = maxYear; y >= MIN_YEAR; y--) {
           const opt = document.createElement('option');
           opt.value = y;
           opt.textContent = y;
           yearSelect.appendChild(opt);
-        });
+        }
       } catch (e) {
-        yearSelect.innerHTML = '<option value="">Could not load years</option>';
+        // Fallback: static range if all fetches fail
+        const currentYear = new Date().getFullYear();
+        yearSelect.innerHTML = '<option value="">Select year</option>';
+        for (let y = currentYear; y >= 1990; y--) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = y;
+          yearSelect.appendChild(opt);
+        }
       }
       clearLoading();
       showEmpty();

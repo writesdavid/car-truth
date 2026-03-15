@@ -22,7 +22,7 @@ app.get('/api/safety', async (req, res) => {
     return res.status(400).json({ error: 'year, make, and model are required' });
   }
 
-  const cacheKey = `${year}-${make}-${model}`.toLowerCase();
+  const cacheKey = `${year}-${make}-${model}-${vehicleId || ''}`.toLowerCase();
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return res.json(cached.data);
@@ -33,7 +33,7 @@ app.get('/api/safety', async (req, res) => {
     const recallsUrl = `${NHTSA_BASE}/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${encodeURIComponent(year)}`;
     const recallsRes = await fetch(recallsUrl);
     const recallsData = await recallsRes.json();
-    const recalls = recallsData.results || [];
+    const recalls = recallsData.results || recallsData.Results || [];
 
     // Fetch safety ratings
     let ratings = null;
