@@ -1,0 +1,30 @@
+{
+  "opp_version": "0.1",
+  "provider": "Car Truth",
+  "level": 2,
+  "description": "Vehicle safety ratings and recall data from NHTSA federal databases.",
+  "endpoints": [
+    {
+      "path": "/api/safety",
+      "method": "GET",
+      "parameters": {
+        "year": "Model year (required)",
+        "make": "Vehicle make (required)",
+        "model": "Vehicle model (required)",
+        "vehicleId": "NHTSA vehicle ID for specific variant (optional)"
+      },
+      "envelope": {
+        "source_url": true,
+        "freshness": true,
+        "confidence": true,
+        "citations": true
+      }
+    }
+  ],
+  "source": {
+    "name": "National Highway Traffic Safety Administration",
+    "url": "https://api.nhtsa.gov",
+    "license": "US Government Public Domain",
+    "reporting": "mandatory-federal-reporting"
+  }
+}

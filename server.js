@@ -11,7 +11,7 @@ const cache = new Map();
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { dotfiles: 'allow' }));
 
 const NHTSA_BASE = 'https://api.nhtsa.gov';
 
@@ -72,7 +72,19 @@ app.get('/api/safety', async (req, res) => {
       model,
       ratings,
       variants: vehicleId ? [] : variants,
-      recalls
+      recalls,
+      source_url: 'https://api.nhtsa.gov',
+      freshness: new Date().toISOString(),
+      confidence: {
+        completeness: 0.95,
+        methodology: 'mandatory-federal-reporting',
+        note: 'NHTSA crash tests cover most popular models. Recalls are mandatory reporting.'
+      },
+      citations: {
+        statement: `According to NHTSA, ${recalls.length} recall(s) found for ${year} ${make} ${model}`,
+        source_url: 'https://api.nhtsa.gov',
+        license: 'US Government Public Domain'
+      }
     };
 
     cache.set(cacheKey, { ts: Date.now(), data });

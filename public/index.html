@@ -105,7 +105,7 @@
     .star-green  { color: var(--ok); }
     .star-yellow { color: var(--warn); }
     .star-red    { color: var(--danger); }
-    .star-empty  { color: var(--border); }
+    .star-empty  { color: var(--star-off); }
 
     .no-data {
       color: var(--muted);
@@ -384,7 +384,7 @@
 
     yearSelect.addEventListener('change', async function () {
       const year = this.value;
-      resetFrom('make');
+      resetFrom('model');
       results.innerHTML = '';
       results.classList.remove('visible');
       showEmpty();
@@ -451,7 +451,7 @@
       results.innerHTML = '';
       results.classList.remove('visible');
 
-      if (!model) return;
+      if (!model || !make) { showEmpty(); return; }
 
       hideEmpty();
       setLoading('Checking what we know about this one...');
@@ -506,6 +506,10 @@
         const res  = await fetch(url);
         const data = await res.json();
         clearLoading();
+        if (!res.ok) {
+          renderError(data.error || 'Could not load safety data. Try again.');
+          return;
+        }
         renderResults(data);
       } catch (e) {
         clearLoading();
